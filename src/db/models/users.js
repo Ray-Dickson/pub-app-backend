@@ -1,5 +1,7 @@
 const mongoose = require('mongoose')
-const validator = require('validator')
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+require("dotenv").config()
 
 const userSchema = mongoose.Schema({
     name:{
@@ -7,8 +9,9 @@ const userSchema = mongoose.Schema({
         required: true
     },
     phone:{
-        type: Number,
-        required: true
+        type: String,
+        required: true,
+        unique: true
     },
     password:{
         type: String,
@@ -19,7 +22,67 @@ const userSchema = mongoose.Schema({
                 throw new Error ('Password weak! Please enter 7 or more characters.')
             }
         }
+    },
+    tokens: [{
+        token:{
+            type: String,
+            required: true
+        }
+    }]   
+}, {
+    timestamps: true
+})
+
+userSchema.virtual('myCustomers', {
+    ref: 'customers',
+    localField: '_id',
+    foreignField: 'createdBy'
+})
+
+userSchema.methods.toJSON = function(){
+    const user = this
+
+    const userObject = user.toObject()
+
+    delete userObject.password
+    delete userObject.tokens
+
+    return userObject
+}
+
+userSchema.methods.generateAuthToken = async function(){
+    const user = this
+    const token = jwt.sign({userId: user._id.toString()}, process.env.SECRETE)
+
+    user.tokens = user.tokens.concat({ token })
+    await user.save()
+
+    return token
+}
+
+userSchema.statics.findBycredentials = async(phone, password)=>{
+    const user = await User.findOne({phone})
+    if(!user){
+        throw new Error('Unable to login')
     }
+
+    const isMatchPassword = await bcrypt.compare(password, user.password)
+    if(!isMatchPassword){
+        throw new Error('Unable to login')
+    }
+
+    return user
+}
+
+
+// Hashing plain text password before saving
+userSchema.pre('save', async function(next){
+    const user = this
+
+    if(user.isModified('password')){
+        user.password = await bcrypt.hash(user.password, 7)
+    }
+    next()
 })
 
 const User = mongoose.model('Users', userSchema) 
