@@ -38,18 +38,31 @@ router.post('/login', async(req, res)=>{
     }
 })
 
-//geting all users
+//logout a user
+router.post('/logout', auth, async(req, res)=>{
+    try{
+        req.user.tokens = req.user.tokens.filter((token)=>{
+            return token.token !== req.token
+        })
+        await req.user.save()
+        res.status(200).send()
+    }catch(e){
+        res.status(500).json({message: e.mesaage})
+    }
+})
+
+//get user profile
 router.get('/me', auth, async(req, res)=>{
     res.send(req.user)
 })
 
 //searh for a user by id
-router.get('/:id', findId, (req, res)=>{
+router.get('/:id', [auth, findId], (req, res)=>{
     res.json(res.user)
 })
 
 //find user by id and update
-router.patch('/:id', [findId, auth], async (req, res)=>{
+router.patch('/:id', [auth, findId], async (req, res)=>{
     const updates = Object.keys(req.body)
     const allowedUpdates = ['name', 'phone', 'password']
     const isValidUpdate = updates.every((update) => allowedUpdates.includes(update))
@@ -69,7 +82,7 @@ router.patch('/:id', [findId, auth], async (req, res)=>{
 })
 
 //find user by id and delete
-router.delete('/:id', findId, async (req, res)=>{
+router.delete('/:id', [auth ,findId], async (req, res)=>{
     try{
         await res.user.delete()
         res.status(200).json({message: 'User deleted succesfully'})

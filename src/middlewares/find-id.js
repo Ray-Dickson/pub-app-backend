@@ -11,8 +11,8 @@ const findId = async (req, res, next)=>{
         }
     }catch(e){
         return res.status(500).json({
-            message: e.message,
-            errorMessage: 'User not found'
+            errorMessage: e.message,
+            message: 'User not found'
         })
     }
 

@@ -15,7 +15,26 @@ const customerSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     required: true,
     ref: 'Users'
-   }
+   },
+   ordersMade:[{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'orders'
+   }],
+   totalOrders:{
+    type: Number,
+    default: 0
+   },
+   totalOwing:{
+    type: Number,
+    default: 0
+   },
+   totalPaid:{
+    type: Number,
+    default: 0
+   },
+   numberOfPayments: [{
+    amount: Number
+   }]
 }, {
     timestamps: true
 })

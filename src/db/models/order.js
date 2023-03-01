@@ -13,9 +13,17 @@ const orderSchema = mongoose.Schema({
         type: Number,
         required: true
     },
+    orderedBy:{
+        required: true,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'customers' 
+    },
+    servedBy:{
+        required: true,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Users'
+    },
     tableNumber: Number,
-    //orderedBy: reference the customer id
-    //servedBy: reference the user id
 }, {
     timestamps: true
 })

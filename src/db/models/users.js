@@ -33,11 +33,12 @@ const userSchema = mongoose.Schema({
     timestamps: true
 })
 
-userSchema.virtual('myCustomers', {
-    ref: 'customers',
-    localField: '_id',
-    foreignField: 'createdBy'
-})
+// userSchema.virtual('myCustomers', {
+//     ref: 'customers',
+//     localField: '_id',
+//     foreignField: 'createdBy'
+// })
+
 
 userSchema.methods.toJSON = function(){
     const user = this
