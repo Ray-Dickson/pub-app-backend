@@ -33,11 +33,16 @@ const customerSchema = mongoose.Schema({
     default: 0
    },
    numberOfPayments: [{
-    amount: Number
+    amount: Number,
+    date:{
+        type: Date,
+        default: Date.now
+    }
    }]
 }, {
     timestamps: true
 })
+
 
 const customer = mongoose.model('customers', customerSchema)
 

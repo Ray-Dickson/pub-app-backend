@@ -2,7 +2,7 @@ const router = require('express').Router()
 const Customer = require('../db/models/customers')
 const auth = require('../middlewares/authentication')
 const findCustomerId = require('../middlewares/find-customer-id')
-require('mongoose')
+const Orders = require('../db/models/order')
 
 
 //create a new customer
@@ -18,7 +18,9 @@ router.post('/addcustomer', auth, async (req, res)=>{
             message: 'Customer created succesfully',
             customer})
     } catch (e) {
-        res.status(400).json({message: e.message})
+        res.status(400).json({
+            message: 'Customer with same phone number exist',
+            errorMessage: e. message})
     }
 })
 
@@ -34,7 +36,6 @@ router.get('/', auth, async(req, res)=>{
 })
 
 //find customer by Id
-
 router.get('/:id', [auth,findCustomerId], (req, res)=>{
     res.send(res.customer)
 })
@@ -68,6 +69,7 @@ router.delete('/:id', [auth, findCustomerId], async(req, res)=>{
 
     }
 })
+
 
 //making of payment by customer
 router.post('/:id/make-payment', [auth, findCustomerId], async(req, res)=>{

@@ -3,6 +3,7 @@ const bodyParser = require('body-parser')
 const userRoutes = require('./src/routes/users-routes')
 const customersRoutes = require('./src/routes/customers-routes')
 const orderRoutes = require('./src/routes/orders-routes')
+const activeRoutes = require('./src/routes/active-orders')
 const cors = require('cors')
 
 
@@ -21,6 +22,7 @@ app.use(bodyParser.json())
 app.use('/users', userRoutes)
 app.use('/customers', customersRoutes)
 app.use('/orders', orderRoutes)
+app.use('/active-orders', activeRoutes)
 
 
 

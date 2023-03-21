@@ -6,54 +6,72 @@ const router = require('express').Router()
 
 
 //Make a new oder
-router.post('/new-order/:id', auth, findCustomerId, async(req, res)=>{
-    const order = new Orders({
-        ...req.body,
-        servedBy: req.user._id,
-        orderedBy: res.customer._id
-    })
+router.post('/new-order/:id', [auth, findCustomerId], async(req, res)=>{
+
     try{
-        await order.save()
-        res.customer.ordersMade.push(order._id)
-        res.customer.totalOrders += order.totalPrice
-        res.customer.totalOwing += order.totalPrice
-        await res.customer.save()
-        res.status(200).json({
-            message: 'Order succesfully placed',
-            order
-        })
+            const customerActiveOrder = await Orders.find({servedBy: req.user._id, orderedBy: res.customer._id})
+    
+            const activeOrders = customerActiveOrder.filter((order)=>{
+                return order.amountOwing > 0
+                })
+            if(activeOrders.length === 0){
+                const servedOrder = new Orders({ 
+                servedBy: req.user._id,
+                orderedBy: res.customer._id,
+                customerOrders: [{
+                    ...req.body,
+                    }]
+                })
+            await servedOrder.save()
+            res.customer.ordersMade.push(servedOrder._id)
+            
+            //updating customer who made the order his amount owing and total amount of orders made
+            servedOrder.customerOrders.forEach(async(order)=>{
+                res.customer.totalOrders = res.customer.totalOrders + order.totalPrice
+                res.customer.totalOwing = res.customer.totalOwing + order.totalPrice
+                servedOrder.amountOwing = servedOrder.amountOwing + order.totalPrice
+                req.user.totalSalesMade = req.user.totalSalesMade + order.totalPrice
+                req.user.ordersCount = req.user.ordersCount + 1
+            })
+            await servedOrder.save()
+            await req.user.save()
+            await res.customer.save()
+            res.status(200).json({
+                message: 'Order succesfully placed',
+                servedOrder
+            })
+        }else{
+            return res.json({
+                message: 'Customer has active order',
+                activeOrders
+            })
+        }
     }catch(e){
         res.status(404).json({message: e.message})
-   }
+        }  
 })
 
 //Get all orders made
 router.get('/', auth, async(req, res)=>{
     try{
-        const allOrders = await Orders.find({servedBy: req.user._id})
-        if(!allOrders){
-           return  res.status(400).json({message: 'No orders found'})
+        const orders = await Orders.find({ servedBy: req.user._id }).populate('orderedBy', 'name phone totalOwing')
+        if(!orders){
+           return res.json({message: 'No orders to show'})
         }
-        res.status(200).send(allOrders)
+        res.json({orders})
     }catch(e){
         res.status(500).json({message: e.message})
     }
 })
 
+
 //Get order by Id
 router.get('/:id', [auth, orderId], async(req, res)=>{
-
     try{
-        const order = await Orders.findOne({_id: res.order._id, servedBy: req.user._id})
-        if(!order){
-            throw new Error('Order not found')
-        }
-        res.status(200).send(order)
+        res.status(200).json(res.order)
     }catch(e){
         res.status(500).json({message: e.message})
     }
-
-    //res.send(res.order)
 })
 
 //find order by Id and update
@@ -100,5 +118,7 @@ router.delete('/:id', [auth, orderId], async(req, res)=>{
         })
     }
 })
+
+
 
 module.exports = router

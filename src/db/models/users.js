@@ -23,6 +23,14 @@ const userSchema = mongoose.Schema({
             }
         }
     },
+    totalSalesMade: {
+        type: Number,
+        default: 0
+    },
+    ordersCount: {
+        type: Number,
+        default: 0
+    },
     tokens: [{
         token:{
             type: String,
@@ -32,13 +40,6 @@ const userSchema = mongoose.Schema({
 }, {
     timestamps: true
 })
-
-// userSchema.virtual('myCustomers', {
-//     ref: 'customers',
-//     localField: '_id',
-//     foreignField: 'createdBy'
-// })
-
 
 userSchema.methods.toJSON = function(){
     const user = this

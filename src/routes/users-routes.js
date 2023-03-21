@@ -3,6 +3,7 @@ require('../db/database')
 const User = require('../db/models/users')
 const findId = require('../middlewares/find-id')
 const auth = require('../middlewares/authentication')
+const { number } = require("joi")
 
 //creating new user
 router.post('/register', async(req, res)=>{
@@ -16,7 +17,10 @@ router.post('/register', async(req, res)=>{
             token
         })
     }catch(e){
-        res.status(400).json({message: e.message})
+        res.status(400).json({
+            message: 'Phone number already in use',
+        errorMessage: e.message
+        })
     }
 })
 
